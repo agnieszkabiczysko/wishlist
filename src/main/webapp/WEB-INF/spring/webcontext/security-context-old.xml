@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:security="http://www.springframework.org/schema/security"
+
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans     
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/mvc
+	http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+	http://www.springframework.org/schema/security
+    http://www.springframework.org/schema/security/spring-security-4.2.xsd">
+
+	<context:component-scan base-package="agnieszka.wishlist" />
+
+	<security:http auto-config="true">
+		<security:intercept-url pattern="/add" 
+			access="isAuthenticated()" />
+		<security:intercept-url pattern="/edit*"
+			access="isAuthenticated()" />
+		<security:intercept-url pattern="/delete*"
+			access="isAuthenticated()" />
+		<security:intercept-url pattern="/wishes"
+			access="isAuthenticated()" />
+		<security:intercept-url pattern="/mywishes"
+			access="isAuthenticated()" />
+		<security:intercept-url pattern="/mark*"
+			access="isAuthenticated()" />
+		<security:intercept-url pattern="/unmark*"
+			access="isAuthenticated()" />
+		<security:intercept-url pattern="/share*"
+			access="isAuthenticated()"/>
+		<security:intercept-url pattern="/j_spring_security_logout"
+			access="permitAll" />
+		<security:form-login login-processing-url="/j_spring_security_check"
+			login-page="/login" default-target-url="/offers"
+			authentication-failure-url="/loginfailed" username-parameter="j_username"
+			password-parameter="j_password" />
+		<security:logout logout-success-url="/logout"
+			logout-url="/j_spring_security_logout" />
+	</security:http>
+
+	<bean id="bcryptEncoder"
+		class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
+	<bean id="customUserDetailsService" class="agnieszka.wishlist.service.CustomUserDetailsService" />
+
+	<security:authentication-manager>
+		<security:authentication-provider
+			user-service-ref="customUserDetailsService">
+			<security:password-encoder ref="bcryptEncoder" />
+		</security:authentication-provider>
+	</security:authentication-manager>
+
+</beans>
