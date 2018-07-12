@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -14,10 +14,11 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.ui.ModelMap;
 
 import agnieszka.wishlist.controller.WishController;
@@ -26,9 +27,11 @@ import agnieszka.wishlist.model.Offer;
 import agnieszka.wishlist.model.User;
 import agnieszka.wishlist.model.Wish;
 import agnieszka.wishlist.model.WishState;
+import agnieszka.wishlist.model.Wishlist;
 import agnieszka.wishlist.service.UserService;
 import agnieszka.wishlist.service.WishService;
 
+@RunWith(MockitoJUnitRunner.class)
 public class WishControllerTest {
 
 	@Mock
@@ -57,44 +60,26 @@ public class WishControllerTest {
 	
 	@Before
 	public void setup() {
-		MockitoAnnotations.initMocks(this);
-		wishes = getWishes();
 		user = getUser();
 		secondUser = getSecondUser();
+		wishes = getWishes();
 	}
-	
-
-	@Test
-	public void showAllWishes() {
-		//given
-		when(wishService.getAllWishes()).thenReturn(wishes);
-		
-		//when
-		String viewName = controller.showAllWishes(model);
-		
-		//then
-		assertEquals("wishes", viewName);
-		assertEquals(wishes, model.get("wishes"));
-		verify(wishService, timeout(1)).getAllWishes();
-	}
-	
 	
 	@Test
 	public void showWishForNotWisher() {
 		//given
 		Wish wish = wishes.get(0);
 		when(wishService.findWishById(anyInt())).thenReturn(wish);
-		mockUser(user);
-		when(userService.findUserById(anyInt())).thenReturn(secondUser);
+		setCurrentUser(secondUser);
 		
 		//when
-		String viewName = controller.showWish(model, wish.getId(), secondUser.getId(), principal);
+		String viewName = controller.showWish(model, wish.getId(), principal);
 		
 		//then
 		assertEquals("wish", viewName);
 		assertEquals(wish, model.get("wish"));
-		assertEquals(false, model.get("myWish"));
-		verify(wishService, timeout(1)).findWishById(anyInt());
+		assertEquals(true, model.get("canBuy"));
+		verify(wishService, times(1)).findWishById(anyInt());
 	}
 	
 	@Test
@@ -102,67 +87,70 @@ public class WishControllerTest {
 		//given
 		Wish wish = wishes.get(0);
 		when(wishService.findWishById(anyInt())).thenReturn(wish);
-		mockUser(user);
-		when(userService.findUserById(anyInt())).thenReturn(user);
+		setCurrentUser(user);
 		
 		//when
-		String viewName = controller.showWish(model, wish.getId(), user.getId(), principal);
+		String viewName = controller.showWish(model, wish.getId(), principal);
 		
 		//then
 		assertEquals("wish", viewName);
 		assertEquals(wish, model.get("wish"));
-		assertEquals(true, model.get("myWish"));
-		verify(wishService, timeout(1)).findWishById(anyInt());
+		assertEquals(false, model.get("canBuy"));
+		verify(wishService, times(1)).findWishById(anyInt());
 	}
 	
 	@Test
 	public void showWishThatIsPurchased() {
 		//given
 		Wish wish = wishes.get(0);
+		wish.setState(WishState.PURCHASED);
 		when(wishService.findWishById(anyInt())).thenReturn(wish);
-		mockUser(user);
-		when(userService.findUserById(anyInt())).thenReturn(user);
-		when(wishService.isWishPurchased(wish)).thenReturn(true);
+		setCurrentUser(user);
 		
 		//when
-		String viewName = controller.showWish(model, wish.getId(), user.getId(), principal);
+		String viewName = controller.showWish(model, wish.getId(), principal);
 		
 		//then
 		assertEquals("wish", viewName);
 		assertEquals(wish, model.get("wish"));
-		assertEquals(true, model.get("purchased"));
-		verify(wishService, timeout(1)).findWishById(anyInt());
+		assertEquals(true, model.get("isPurchased"));
+		verify(wishService, times(1)).findWishById(anyInt());
 	}
 	
 	@Test
-	public void someoneClickWantToBuy() {
+	public void userFulfilsAWish() {
 		//given
 		Wish wish = wishes.get(0);
 		when(wishService.findWishById(anyInt())).thenReturn(wish);
-		mockUser(user);
+		setCurrentUser(user);
 		doNothing().when(wishService).fulfilWish(wish, user);
 		
 		//when
-		String viewName = controller.wantToBuy(wish.getId(), principal);
+		String viewName = controller.fulfilWish(wish.getId(), principal);
 		
 		//then
 		assertEquals("redirect:/offers", viewName);
 	}
 	
 	
-	private void mockUser(User user) {
+	private void setCurrentUser(User user) {
 		when(currentUserHelper.getCurrentUser(any(Principal.class))).thenReturn(user);
 	}
 	
 	private List<Wish> getWishes() {
+		Wishlist wishlist = new Wishlist();
+		wishlist.setWisher(user);
+		
 		Offer o1 = new Offer();
 		o1.setName("Oferta1");
 		Wish wish1 = new Wish(o1);
 		wish1.setState(WishState.PURCHASED);
+		wish1.setWishlist(wishlist);
 		
 		Offer o2 = new Offer();
 		o1.setName("Oferta2");
 		Wish wish2 = new Wish(o2);
+		wish2.setWishlist(wishlist);
 		
 		wishes.add(wish1);
 		wishes.add(wish2);

@@ -20,7 +20,7 @@
 
 		<c:if test="${error}">
 			<div class="alert alert-danger">
-				<spring:message code="wishes.shareWishes.badEmailAddress" />
+				<spring:message code="wishes.shareWishlist.badEmailAddress" />
 				<br />
 			</div>
 		</c:if>
@@ -34,9 +34,7 @@
 							style="width: 100%" />
 						<div class="caption">
 							<h4>
-								<a
-									href="<spring:url value="/wish?id=${wish.id}&user=${user.id}"/>"
-									style="color: #333">${wish.offer.name} </a>
+								<a href="<spring:url value="/wish/${wish.id}" />" style="color: #333">${wish.offer.name} </a>
 							</h4>
 						</div>
 					</div>
@@ -69,7 +67,7 @@
 				<br>
 				<br>
 				<form:form method="post" modelAttribute="shareEmail"
-					action="${pageContext.request.contextPath}/shareWishes/${wishlistId}"
+					action="${pageContext.request.contextPath}/shareWishlist/${wishlistId}"
 					class="form-horizontal">
 					<fieldset>
 

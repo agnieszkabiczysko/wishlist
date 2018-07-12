@@ -23,7 +23,7 @@ public class UserPreferences {
 	@Id
 	@GeneratedValue(generator = "generator")
 	@GenericGenerator(name = "generator", strategy = "foreign",
-	parameters = @Parameter(name = "property", value = "user"))
+			parameters = @Parameter(name = "property", value = "user"))
 	@Column(name = "user_id", unique = true, nullable = false)
 	private int userId;
 	
@@ -42,7 +42,6 @@ public class UserPreferences {
 		this.currentWishlist = wishlist;
 	}
 
-	
 	public UserPreferences() {
 		super();
 	}
@@ -102,6 +101,5 @@ public class UserPreferences {
 				.append(currentWishlist)
 				.toString();
 	}
-
 	
 }

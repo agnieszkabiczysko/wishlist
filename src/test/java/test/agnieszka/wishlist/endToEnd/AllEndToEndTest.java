@@ -18,7 +18,7 @@ public class AllEndToEndTest {
 	static {
 		System.setProperty("webdriver.gecko.driver", "/home/agnieszka/dev/selenium/lib/geckodriver");
 	}
-	private static String baseUrl = "http://localhost:8080/wishlist/";
+	private static String baseUrl = "http://localhost:8080/wishlist/offers";
 	private static WebDriver driver = new FirefoxDriver();
 	
 	private final static SeleniumRunner application = new SeleniumRunner(driver);
@@ -97,7 +97,7 @@ public class AllEndToEndTest {
 	public void createNoEmptyPublicWishlist() {
 		application.loginDefaultUser();
 		application.createWishlist("PublicznaTestowaPełna", "publicState");
-		application.addWishToWishlistDiffrentFromDefault(data.nextOfferName(), "PublicznaTestowaPełna");
+		application.addOfferToWishlistDiffrentFromDefault(data.nextOfferName(), "PublicznaTestowaPełna");
 		application.logout();
 		application.findWishlistByUser(data.defaultUser());
 		verificator.verifyIsWishlistVisibleForUser("PublicznaTestowaPełna");
@@ -107,6 +107,7 @@ public class AllEndToEndTest {
 	public void createPrivateWishlist() {
 		application.loginDefaultUser();
 		application.createWishlist("PrywatnaTestowa", "privateState");
+		application.addOfferToWishlistDiffrentFromDefault(data.nextOfferName(), "PrywatnaTestowa");
 		verificator.verifyIsWishlistVisibleForUser("PrywatnaTestowa");
 		application.logout();
 		application.loginDefaultUser();
@@ -130,7 +131,7 @@ public class AllEndToEndTest {
 	public void createNoEmptySharedWishlist() {
 		application.loginDefaultUser();
 		application.createWishlist("DzielonaTestowaPełna", "sharedState");
-		application.addWishToWishlistDiffrentFromDefault(data.nextOfferName(), "DzielonaTestowaPełna");
+		application.addOfferToWishlistDiffrentFromDefault(data.nextOfferName(), "DzielonaTestowaPełna");
 		verificator.verifyIsWishlistVisibleForUser("DzielonaTestowaPełna");
 		application.goToWishlistPage("DzielonaTestowaPełna");
 		application.sendWishlistToFriend(data.emailForSecondUser());
@@ -144,7 +145,7 @@ public class AllEndToEndTest {
 	@Test
 	public void addWishToWishlistForFirstTime() {
 		application.loginDefaultUser();
-		application.addWishToWishlistDiffrentFromDefault(data.offerName(), data.defaultWishlistToDefaultUser());
+		application.addOfferToWishlistDiffrentFromDefault(data.offerName(), data.defaultWishlistToDefaultUser());
 		application.goToWishlistPage(data.defaultWishlistToDefaultUser());
 		verificator.verifyIfWishlistContainsWish(data.offerName());
 		application.logout();
@@ -153,7 +154,7 @@ public class AllEndToEndTest {
 	@Test
 	public void addWishToDefaultWishlistTest() {
 		application.loginDefaultUser();
-		application.addWishToWishlistDiffrentFromDefault(data.offerName(), data.defaultWishlistToDefaultUser());
+		application.addOfferToWishlistDiffrentFromDefault(data.offerName(), data.defaultWishlistToDefaultUser());
 		application.clickLink(baseUrl);
 		application.addWishToDefaultWishlist(data.nextOfferName());
 		application.goToWishlistPage(data.defaultWishlistToDefaultUser());
@@ -164,7 +165,7 @@ public class AllEndToEndTest {
 	@Test
 	public void addWishToWishlistDiffrentFromDefaultTest() {
 		application.loginDefaultUser();
-		application.addWishToWishlistDiffrentFromDefault(data.offerName(), data.noDefaultWishlistName());
+		application.addOfferToWishlistDiffrentFromDefault(data.offerName(), data.noDefaultWishlistName());
 		application.goToWishlistPage(data.noDefaultWishlistName());
 		verificator.verifyIfWishlistContainsWish(data.offerName());
 		application.logout();
@@ -182,12 +183,12 @@ public class AllEndToEndTest {
 		registerSecondUser();
 		publishOffers();
 		createWishlists();
-	    addWishlistToWishlist();
+	    addOfferToWishlist();
 	}
 
-	private static void addWishlistToWishlist() {
+	private static void addOfferToWishlist() {
 		application.clickLink(baseUrl);
- 		application.addWishToWishlistDiffrentFromDefault(data.offerName(), data.defaultWishlistToDefaultUser());
+ 		application.addOfferToWishlistDiffrentFromDefault(data.offerName(), data.defaultWishlistToDefaultUser());
  		application.logout();
 	}
 

@@ -1,18 +1,18 @@
 package agnieszka.wishlist.formatter;
 
+import static java.text.MessageFormat.format;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import agnieszka.wishlist.model.Offer;
 
 @Component
 public class OfferFormatter {
+	@Value("${offerFormatter.template}")
+	private String offerTemplate;
 
 	public String formatOfferForEmail(Offer offer) {
-		return offerTemplate(offer.getName(), offer.getVendor(), offer.getDescription());
-	}
-	
-	private String offerTemplate(String name, String vendor, String descritpion) {
-		return String.format("Moje życzenie: %s %nProducent: %s %nOpis: %s",
-				name, vendor, descritpion);
+		return format(offerTemplate, offer.getName(), offer.getVendor(), offer.getDescription());
 	}
 }

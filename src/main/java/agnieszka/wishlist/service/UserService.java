@@ -4,7 +4,6 @@ import java.util.List;
 
 import agnieszka.wishlist.model.EmailAddress;
 import agnieszka.wishlist.model.User;
-import agnieszka.wishlist.model.Wishlist;
 
 public interface UserService {
 
@@ -18,8 +17,6 @@ public interface UserService {
 	
 	User findUserByEmail(String email);
 
-	void saveRoleUserForUser(User user);
-
 	void setPasswordAndActivateUser(User user, String userPassword);
 
 	void update(User user);
@@ -30,10 +27,6 @@ public interface UserService {
 	
 	List<User> getAllUsers();
 
-	User getCurrentUser(String name);
-	
-	void setCurrentWishlist(User user, Wishlist wishlist);
-
-	Wishlist getCurrentWishlist(User user);
+	User getCurrentUser();
 
 }

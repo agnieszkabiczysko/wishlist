@@ -5,25 +5,25 @@ import java.util.Set;
 import agnieszka.wishlist.model.Offer;
 import agnieszka.wishlist.model.User;
 import agnieszka.wishlist.model.Wishlist;
-import agnieszka.wishlist.model.WishlistState;
-import agnieszka.wishlist.model.WishlistTermType;
 
 public interface WishlistService {
-
-	Wishlist findWishlistById(int id);
-
-	Set<Wishlist> getAllWishlistsForUser(User user);
-	
-	boolean userWantsOffer(User user, Offer offer);
 
 	void save(Wishlist wishlist);
 	
 	void update(Wishlist wishlist);
 
-	Set<Wishlist> findWishlistsByTerm(WishlistTermType type, String term);
-	
-	Set<Wishlist> findWishlistsByTermAndState(WishlistTermType type, String term, WishlistState state);
+	boolean userWantsOffer(User user, Offer offer);
 
-	Set<Wishlist> sharedAndPublicWishlistsForUser(User wisher, User visibleFor);
+	Wishlist findWishlistById(int id);
+
+	Set<Wishlist> findWishlistsOf(User user);
+	
+	Set<Wishlist> findPublicWishlistsOf(User owner);
+
+	Set<Wishlist> publicAndSharedWishlistsOf(User owner);
+
+	Wishlist getCurrentWishlistOf(User user);
+
+	void setCurrentWishlistOf(User user, Wishlist wishlist);
 
 }

@@ -44,6 +44,7 @@ public abstract class AbstractDao<PK extends Serializable, T> {
 		getSession().update(entity);
 	}
 	
+	@SuppressWarnings("deprecation")
 	protected Criteria createEntityCriteria() {
 		return getSession().createCriteria(persistentClass);
 	}

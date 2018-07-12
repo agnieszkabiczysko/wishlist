@@ -19,7 +19,6 @@ public class EmailAddress {
 	@Column
 	private String email;
 
-	
 	public EmailAddress() {
 		super();
 	}
@@ -37,14 +36,12 @@ public class EmailAddress {
 		this.email = email;
 	}
 
-
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder()
 				.append(email)
 				.toHashCode();
 	}
-
 
 	@Override
 	public boolean equals(Object obj) {
@@ -66,4 +63,5 @@ public class EmailAddress {
 				.append(email)
 				.toString();
 	}
+
 }

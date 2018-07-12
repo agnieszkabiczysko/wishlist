@@ -8,4 +8,5 @@ public interface UserPreferencesDao {
 	void saveUserPreferences(UserPreferences preferences);
 	
 	UserPreferences findUserPreferencesForUser(User user);
+
 }

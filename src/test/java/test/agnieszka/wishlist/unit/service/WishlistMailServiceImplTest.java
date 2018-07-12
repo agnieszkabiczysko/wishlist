@@ -8,19 +8,19 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import agnieszka.wishlist.dao.WishlistMailDao;
-import agnieszka.wishlist.exception.InvalidWishlistMailIdException;
 import agnieszka.wishlist.model.Wishlist;
 import agnieszka.wishlist.model.WishlistMail;
 import agnieszka.wishlist.service.WishlistMailServiceImpl;
 
+@RunWith(MockitoJUnitRunner.class)
 public class WishlistMailServiceImplTest {
 
 	@Mock
@@ -35,11 +35,6 @@ public class WishlistMailServiceImplTest {
 	@Spy
 	private WishlistMail wishlistMail;
 	
-	@Before
-	public void setup() {
-		MockitoAnnotations.initMocks(this);
-	}
-
 	@Test
 	public void saveWishlistMail() {
 		//given
@@ -52,30 +47,31 @@ public class WishlistMailServiceImplTest {
 		verify(dao, times(1)).saveWishlistMail(any(WishlistMail.class));
 	}
 	
-	@Test(expected = InvalidWishlistMailIdException.class)
-	public void findWishlistById() throws InvalidWishlistMailIdException {
+	@Test
+	public void findWishlistById() {
 		//given
 		when(dao.findWishlistMailById(anyString())).thenReturn(null);
 		
 		//when
-		mailService.findWishlistById(anyString());
+		Wishlist wishlistFound = mailService.findWishlistById(anyString());
 		
 		//then
 		verify(dao, times(1)).findWishlistMailById(anyString());
+		assertThat(wishlistFound).isNull();
 	}
 	
 	@Test
-	public void findWishlistByIdWithoutException() throws InvalidWishlistMailIdException {
+	public void findWishlistByIdWithoutException() {
 		//given
 		when(dao.findWishlistMailById(anyString())).thenReturn(wishlistMail);
 		wishlistMail.setWishlist(wishlist);
 		
 		//when
-		Wishlist foundedWishlist = mailService.findWishlistById(anyString());
+		Wishlist wishlistFound = mailService.findWishlistById(anyString());
 		
 		//then
 		verify(dao, times(1)).findWishlistMailById(anyString());
-		assertThat(foundedWishlist).isEqualTo(wishlist);
+		assertThat(wishlistFound).isEqualTo(wishlist);
 	}
 	
 	@Test

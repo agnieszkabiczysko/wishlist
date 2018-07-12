@@ -13,4 +13,5 @@ public interface WishDao {
 	List<Wish> getAllWishes();
 		
 	Wish findWishById(int id);
+
 }

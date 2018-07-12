@@ -1,260 +1,168 @@
 package test.agnieszka.wishlist.unit.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import javax.servlet.http.HttpServletRequest;
-
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 
 import agnieszka.wishlist.common.ApplicationMailer;
-import agnieszka.wishlist.common.UrlHelper;
 import agnieszka.wishlist.controller.RegisterController;
-import agnieszka.wishlist.exception.InvalidRegisterMailIdException;
+import agnieszka.wishlist.model.ConfirmationMail;
 import agnieszka.wishlist.model.EmailAddress;
-import agnieszka.wishlist.model.Password;
 import agnieszka.wishlist.model.RegisterMail;
-import agnieszka.wishlist.model.RegisterMailState;
 import agnieszka.wishlist.model.User;
-import agnieszka.wishlist.service.PasswordService;
+import agnieszka.wishlist.service.ConfirmationMailService;
 import agnieszka.wishlist.service.RegisterMailService;
 import agnieszka.wishlist.service.UserService;
 
+@RunWith(MockitoJUnitRunner.class)
 public class RegisterControllerTest {
 
-	private static final String MAILING_ID = "2c55bb6d-a12b-4201-ad26-0eb7933be319";
-	private static final String CONFIRMATION_ID = "eee90b4b-9b0b-4f2f-8fe2-37085434a3ed";
+	@InjectMocks
+	private RegisterController controller;
 	
 	@Mock
 	private UserService userService;
 	
 	@Mock
-	private RegisterMailService registerService;
+	private RegisterMailService registerMailService;
 	
 	@Mock
-	private PasswordService passwordService;
+	private ConfirmationMailService confirmationMailService;
 	
 	@Mock
 	private ApplicationMailer applicationMailer;
 	
-	@InjectMocks
-	private RegisterController controller;
-	
 	@Spy
 	private ModelMap model;
-	
-	@Spy
-	private User user;
-	
-	@Spy
-	private RegisterMail registerMail;
 	
 	@Mock
 	private BindingResult result;
 	
-	@Mock
-	private HttpServletRequest request;
-	
-	@Mock
-	private UrlHelper urlHelper;
-	
-	@Mock
-	private Password password;
-	
-	@Before
-	public void setup() {
-		MockitoAnnotations.initMocks(this);
-		user = getUser();
-		registerMail = getRegisterMail();
-	}
-	
 	@Test
 	public void showRegisterForm() {
+		//given
+		User user = user();
+		
 		//when
-		String viewName = controller.showRegisterForm(model, user);
+		String view = controller.showRegisterForm(model, user);
 		
 		//then
-		assertEquals("userRegistration", viewName);
-		assertEquals(user, model.get("user"));
+		assertThat(view).isEqualTo("userRegistration");
+		assertThat(model.get("user")).isEqualTo(user);
 	}
 	
 	@Test
-	public void registerUserWithoutSuccess() {
+	public void showErrorViewOnValidationErrors() {
 		//given
 		when(result.hasErrors()).thenReturn(true);
 		
 		//when
-		String viewName = controller.registerUser(model, user, request, result);
+		String view = controller.registerUser(model, user(), result);
 		
 		//then
-		assertEquals("userRegistration", viewName);
+		assertThat(view).isEqualTo("userRegistration");
 	}
 	
 	@Test
-	public void registerUserWithoutUserIdUnique() {
+	public void showErrorOnDuplicatedUserId() {
 		//given
+		User user = user();
+		
 		when(result.hasErrors()).thenReturn(false);
-		when(userService.userIdExists(anyString())).thenReturn(true);
+		when(userService.userIdExists(user.getUserId())).thenReturn(true);
 		
 		//when
-		String viewName = controller.registerUser(model, user, request, result);
+		String view = controller.registerUser(model, user, result);
 		
 		//then
-		assertEquals("userRegistration", viewName);
-		assertEquals("true", model.get("userNameAlreadyExists"));
+		assertThat(view).isEqualTo("userRegistration");
+		assertThat(model.get("userNameAlreadyExists")).isEqualTo("true");
 	}
 	
 	@Test
-	public void registerUserWithSuccess() {
+	public void successfulRegistration() {
 		//given
+		User user = user();
+		RegisterMail registerMail = registerMail();
+		ConfirmationMail confirmationMail = confirmationMail();
+		
 		when(result.hasErrors()).thenReturn(false);
 		when(userService.userIdExists(user.getUserId())).thenReturn(false);
-		doNothing().when(userService).save(user);
-		doNothing().when(userService).saveRoleUserForUser(user);
-		mockSendRegisterMail();
+		when(registerMailService.recordRegisterMail(user)).thenReturn(registerMail);
+		when(confirmationMailService.prepareMail(registerMail)).thenReturn(confirmationMail);
 		
 		//when
-		String viewName = controller.registerUser(model, user, request, result);
+		String view = controller.registerUser(model, user, result);
 		
 		//then
-		assertEquals("redirect:/checkmail/"+registerMail.getConfirmationId(), viewName);
+		assertThat(view).startsWith("redirect:/emailSent/").endsWith(registerMail.getMailingId());
+		assertThat(user.getUserProfiles()).isNotEmpty();
+		assertThat(model.get("user")).isEqualTo(user);
+		
+		verify(userService, times(1)).save(user);
+		verify(registerMailService, times(1)).recordRegisterMail(user);
+		verify(confirmationMailService, times(1)).prepareMail(registerMail);
+		verify(applicationMailer, times(1)).sendMessage(user.getEmail(), confirmationMail.getTitle(), confirmationMail.getBody());
 	}
 	
 	@Test
-	public void showSetPasswordFormForValidMailingId() throws InvalidRegisterMailIdException {
-		//given
-		when(registerService.findMailByMailingId(MAILING_ID)).thenReturn(registerMail);
-		registerMail.setState(RegisterMailState.ACTIVE);
-		
+	public void showEmailSentPage() {
 		//when
-		String viewName = controller.showSetPasswordForm(model, MAILING_ID, password);
+		String view = controller.emailSent();
 		
 		//then
-		assertEquals("setPassword", viewName);
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Test
-	public void showExceptionPageAfterDeliveringInvalidMailingId() throws InvalidRegisterMailIdException {
-		//given
-		when(registerService.findMailByMailingId("invalidMailingId")).thenThrow(InvalidRegisterMailIdException.class);
-		
-		//when
-		String viewName = controller.showSetPasswordForm(model, "invalidMailingId", password);
-		
-		//then
-		assertEquals("error", viewName);
-	}
-	
-	@Test
-	public void chechIfRegisterMailIsNotActive() throws InvalidRegisterMailIdException {
-		//given
-		when(registerService.findMailByMailingId(anyString())).thenReturn(registerMail);
-		when(registerService.isRegisterMailActive(any(RegisterMail.class))).thenReturn(false);
-		
-		//when
-		String viewName = controller.showSetPasswordForm(model, anyString(), password);
-		
-		//then
-		assertEquals("redirect:/checkmail/"+registerMail.getConfirmationId(), viewName);
-		assertEquals(true, model.get("inactiveMail"));
-		assertEquals(registerMail, model.get("registerMail"));
-	}
-	
-	@Test
-	public void registerUserConfirmationWithError() {
-		//given
-		when(result.hasErrors()).thenReturn(true);
-		
-		//when
-		String viewName = controller.registerUserConfirmed(model, registerMail.getConfirmationId(), password, result);
-		
-		//then
-		assertEquals("setPassword", viewName);
-	}
-	
-	
-	@Test
-	public void registerUserConfirmationWithIncorrectPassword() {
-		//given
-		when(result.hasErrors()).thenReturn(false);
-		when(password.isValid()).thenReturn(false);
-		
-		//when
-		String viewName = controller.registerUserConfirmed(model, registerMail.getConfirmationId(), password, result);
-		
-		//then
-		assertEquals("setPassword", viewName);
-		assertEquals("true", model.get("error"));
-	}
-	
-	@Test
-	public void registerUserConfirmationWithSuccess() {
-		//given
-		when(result.hasErrors()).thenReturn(false);
-		when(password.isValid()).thenReturn(true);
-		doNothing().when(userService).setPasswordAndActivateUser(any(User.class), anyString());
-		
-		//when
-		String viewName = controller.registerUserConfirmed(model, registerMail.getConfirmationId(), password, result);
-		
-		//then
-		assertEquals("redirect:/offers", viewName);
-	}
-	
-	
-	@Test
-	public void checkMail() {
-		//when
-		String viewName = controller.checkMail();
-				
-		//then
-		assertEquals("checkMail", viewName);
+		assertThat(view).isEqualTo("emailSent");
 	}
 	
 	@Test
 	public void sendMailAgain() {
 		//given
-		when(registerService.findUserByConfirmationId(anyString())).thenReturn(user);
-		mockSendRegisterMail();
+		String mailingId = "xyz";
+		User user = user();
+		RegisterMail registerMail = registerMail();
+		ConfirmationMail confirmationMail = confirmationMail();
+		
+		when(registerMailService.findUserByMailingId(mailingId)).thenReturn(user);
+		when(registerMailService.recordRegisterMail(user)).thenReturn(registerMail);
+		when(confirmationMailService.prepareMail(registerMail)).thenReturn(confirmationMail);
 		
 		//when
-		String viewName = controller.sendMailAgain(model, anyString(), request);
+		String view = controller.sendMailAgain(model, mailingId);
 		
 		//then
-		assertEquals("redirect:/checkmail/"+registerMail.getConfirmationId(), viewName);
+		assertThat(view).startsWith("redirect:/emailSent/").endsWith(registerMail.getMailingId());
+		
+		verify(registerMailService, times(1)).recordRegisterMail(user);
+		verify(confirmationMailService, times(1)).prepareMail(registerMail);
+		verify(applicationMailer, times(1)).sendMessage(user.getEmail(), confirmationMail.getTitle(), confirmationMail.getBody());
 	}
 
-	private void mockSendRegisterMail() {
-		when(urlHelper.createRegisterUrl(request)).thenReturn("http://localhost:8080/wishist/register/");
-		when(registerService.createRegisterMail(any(User.class))).thenReturn(registerMail);
-		doNothing().when(applicationMailer).sendMessage(any(EmailAddress.class), anyString(), anyString());
-	}
-	
-	private User getUser() {
+	private User user() {
 		User user = new User();
-		user.setUserId("U1");
-		EmailAddress mail = new EmailAddress();
-		mail.setEmail("test@test");
-		user.setEmail(mail);
+		user.setUserId("user");
+		user.setEmail(new EmailAddress("test@test.com"));
 		return user;
 	}
 	
-	private RegisterMail getRegisterMail() {
+	private RegisterMail registerMail() {
 		RegisterMail mail = new RegisterMail();
-		mail.setConfirmationId(CONFIRMATION_ID);
-		mail.setMailingId(MAILING_ID);
+		mail.setConfirmationId("abc");
+		mail.setMailingId("def");
 		return mail;
+	}
+
+	private ConfirmationMail confirmationMail() {
+		return new ConfirmationMail("title", "body");
 	}
 
 }

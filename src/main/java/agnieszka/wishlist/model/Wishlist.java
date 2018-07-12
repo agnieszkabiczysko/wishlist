@@ -1,5 +1,9 @@
 package agnieszka.wishlist.model;
 
+import static agnieszka.wishlist.model.WishlistState.PRIVATE;
+import static agnieszka.wishlist.model.WishlistState.PUBLIC;
+import static agnieszka.wishlist.model.WishlistState.SHARED;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,21 +26,10 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 @Entity
-@Table(name="wishlist")
+@Table(name = "wishlist")
 public class Wishlist {
 
-	
-	public Wishlist() {
-		super();
-	}
-
-	public Wishlist(String name, WishlistState state) {
-		super();
-		this.name = name;
-		this.state = state;
-	}
-
-	@Id @GeneratedValue(strategy=GenerationType.AUTO)
+	@Id @GeneratedValue(strategy = GenerationType.AUTO)
 	@Column
 	private int id;
 	
@@ -47,13 +40,22 @@ public class Wishlist {
 	@JoinColumn(name = "wisher_id")
 	private User wisher;
 
-	@Column(nullable=false)
+	@Column(nullable = false)
 	private WishlistState state;
 	
-	@OneToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL, orphanRemoval=true)
-	@JoinColumn(name = "wish_id")
+	@OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+	@JoinColumn(name = "wishlist_id")
 	private Set<Wish> wishes = new HashSet<>();
 
+	public Wishlist() {
+		super();
+	}
+
+	public Wishlist(String name, WishlistState state) {
+		super();
+		this.name = name;
+		this.state = state;
+	}
 
 	public int getId() {
 		return id;
@@ -97,12 +99,16 @@ public class Wishlist {
 		this.wishes = wishes;
 	}
 
-	public void add(Wish wish) {
-		wishes.add(wish);
+	public void add(Offer offer) {
+		wishes.add(new Wish(offer));
 	}
 	
 	public boolean isEmpty() {
 		return wishes.isEmpty();
+	}
+	
+	public boolean hasWishes() {
+		return !wishes.isEmpty();
 	}
 	
 	public boolean contains(Offer offer) {
@@ -111,6 +117,18 @@ public class Wishlist {
 	
 	public boolean contains(Wish wish) {
 		return wishes.contains(wish);
+	}
+	
+	public boolean isPublic() {
+		return state == PUBLIC;
+	}
+	
+	public boolean isShared() {
+		return state == SHARED;
+	}
+	
+	public boolean isPrivate() {
+		return state == PRIVATE;
 	}
 	
 	@Override

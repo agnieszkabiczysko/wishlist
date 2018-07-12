@@ -21,8 +21,8 @@
 				<c:choose>
 					<c:when test="${search}">
 						<p>
-							<spring:message code="wishlists.user" />
-							${user}
+							<spring:message code="wishlists.searchResultsFor" />
+							${term}
 						</p>
 					</c:when>
 					<c:otherwise>
@@ -43,7 +43,7 @@
 					<div class="thumbnail">
 						<div class="caption">
 							<h4>
-								<a href="<spring:url value="/wishes/${wishlist.id}"/>"
+								<a href="<spring:url value="/wishlist/${wishlist.id}"/>"
 									style="color: #333"> ${wishlist.name} </a>
 							</h4>
 							<p>

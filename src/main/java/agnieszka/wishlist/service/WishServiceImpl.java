@@ -1,7 +1,5 @@
 package agnieszka.wishlist.service;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,11 +27,6 @@ public class WishServiceImpl implements WishService {
 	}
 
 	@Override
-	public List<Wish> getAllWishes() {
-		return dao.getAllWishes();
-	}
-
-	@Override
 	public Wish findWishById(int id) {
 		return dao.findWishById(id);
 	}
@@ -43,11 +36,6 @@ public class WishServiceImpl implements WishService {
 		wish.setFulfiller(fulfiler);
 		wish.setState(WishState.PURCHASED);
 		update(wish);
-	}
-
-	@Override
-	public Boolean isWishPurchased(Wish wish) {
-		return wish.getState().toString().equals("Purchased");
 	}
 
 }

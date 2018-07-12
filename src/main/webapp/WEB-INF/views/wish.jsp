@@ -8,17 +8,14 @@
 
 <html>
 <head>
-<link rel="stylesheet"
-	href="<spring:url value="/resources/styles/offers.css" />" />
-<link rel="stylesheet"
-	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-<link rel="stylesheet"
-	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
-<script
-	src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script
-	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-<title><spring:message code="wish.title" /></title>
+	<link rel="stylesheet" href="<spring:url value="/resources/styles/offers.css" />" />
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<title>
+		<spring:message code="wish.title" />
+	</title>
 </head>
 <body>
 	<%@ include file="navigation.jsp"%>
@@ -29,9 +26,7 @@
 	<section class="container">
 		<div class="row">
 			<div class="col-md-6">
-				<img alt="image"
-					src="<c:url value="/images/${wish.offer.id}.png"></c:url>"
-					style="width: 100%" />
+				<img alt="image" src="<c:url value="/images/${wish.offer.id}.png"></c:url>" style="width: 100%" />
 			</div>
 			<div class="col-sm-6 col-md-6" style="padding-bottom: 15px">
 				<div class="thumbnail">
@@ -47,14 +42,11 @@
 							${wish.offer.vendor}
 						</p>
 
-
-
 						<br />
 
 						<security:authorize access="isAuthenticated()">
-
 							<c:choose>
-								<c:when test="${purchased}">
+								<c:when test="${isPurchased}">
 									<p>
 										<b><spring:message code="wish.wishIsPurchased" /></b>
 									</p>
@@ -62,8 +54,8 @@
 								</c:when>
 								<c:otherwise>
 									<c:choose>
-										<c:when test="${not myWish}">
-											<a href='<spring:url value="/buy/${wish.id}" />'
+										<c:when test="${canBuy}">
+											<a href='<spring:url value="/fulfil/${wish.id}" />'
 												class="btn btn-default"> <span
 												class="glyphicon glyphicon-heart-empty" /></span> <spring:message
 													code="wish.WantsToBuy" />

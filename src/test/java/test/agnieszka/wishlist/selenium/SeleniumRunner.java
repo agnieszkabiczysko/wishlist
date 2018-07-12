@@ -3,15 +3,13 @@ package test.agnieszka.wishlist.selenium;
 import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 
 import test.agnieszka.wishlist.ui.SeleniumRunnerData;
 
-
 public class SeleniumRunner {
 
-	private static String baseUrl = "http://localhost:8080/wishlist/";
+	private static String baseUrl = "http://localhost:8080/wishlist/offers";
 	private WebDriver driver;
 
 	private final SeleniumRunnerData data = new SeleniumRunnerData();
@@ -93,7 +91,7 @@ public class SeleniumRunner {
 	
 	public void findWishlistByUser(String username) {
 		driver.findElement(By.linkText("Wyszukaj listę życzeń")).click();
-		driver.findElement(By.id("searchFor")).sendKeys(username);
+		driver.findElement(By.id("term")).sendKeys(username);
 		
 		if (driver.findElement(By.id("optionEmail")).isSelected()) {
 			driver.findElement(By.id("optionUser")).click();
@@ -103,7 +101,7 @@ public class SeleniumRunner {
 	
 	public void findWishlistByEmail(String email) {
 		driver.findElement(By.linkText("Wyszukaj listę życzeń")).click();
-		driver.findElement(By.id("searchFor")).sendKeys(email);
+		driver.findElement(By.id("term")).sendKeys(email);
 		
 		if (driver.findElement(By.id("optionUser")).isSelected()) {
 			driver.findElement(By.id("optionEmail")).click();
@@ -123,7 +121,7 @@ public class SeleniumRunner {
 		driver.findElement(By.linkText("Dodaj do aktualnej listy")).click();
 	}
 	
-	public void addWishToWishlistDiffrentFromDefault(String offer, String wishlist) {
+	public void addOfferToWishlistDiffrentFromDefault(String offer, String wishlist) {
 		driver.get(baseUrl);
 		driver.findElement(By.linkText(offer)).click();
 		driver.findElement(By.id("wishlistChoiceButton")).click();

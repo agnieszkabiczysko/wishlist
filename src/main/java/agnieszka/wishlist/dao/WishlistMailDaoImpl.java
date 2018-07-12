@@ -16,4 +16,5 @@ public class WishlistMailDaoImpl extends AbstractDao<String, WishlistMail> imple
 	public WishlistMail findWishlistMailById(String id) {
 		return getByKey(id);
 	}
+
 }

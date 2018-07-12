@@ -13,10 +13,11 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import agnieszka.wishlist.dao.WishDao;
 import agnieszka.wishlist.model.Offer;
@@ -25,6 +26,7 @@ import agnieszka.wishlist.model.Wish;
 import agnieszka.wishlist.model.WishState;
 import agnieszka.wishlist.service.WishServiceImpl;
 
+@RunWith(MockitoJUnitRunner.class)
 public class WishServiceImplTest {
 
 	@Mock
@@ -44,7 +46,6 @@ public class WishServiceImplTest {
 	
 	@Before
 	public void setup() {
-		MockitoAnnotations.initMocks(this);
 		wish = getWish();
 		wishs.add(wish);
 	}
@@ -62,29 +63,16 @@ public class WishServiceImplTest {
 	}
 	
 	@Test
-	public void findAllWishInDb() {
-		//given
-		when(dao.getAllWishes()).thenReturn(wishs);
-		
-		//when
-		List<Wish> foundedWishs = wishService.getAllWishes();
-		
-		//then
-		verify(dao, times(1)).getAllWishes();
-		assertThat(foundedWishs).hasSameElementsAs(wishs);
-	}
-	
-	@Test
-	public void findWishByIdInDb() {
+	public void findWishById() {
 		//given
 		when(dao.findWishById(anyInt())).thenReturn(wish);
 		
 		//when
-		Wish foundedWish = wishService.findWishById(anyInt());
+		Wish wishFound = wishService.findWishById(anyInt());
 		
 		//then
 		verify(dao, times(1)).findWishById(anyInt());
-		assertThat(foundedWish).isEqualTo(wish);
+		assertThat(wishFound).isEqualTo(wish);
 	}
 	
 	@Test

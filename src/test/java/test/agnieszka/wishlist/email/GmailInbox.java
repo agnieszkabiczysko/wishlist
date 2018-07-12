@@ -18,6 +18,7 @@ public class GmailInbox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GmailInbox.class);
 
 	private Store connectWith(String email, String password) throws MessagingException {
+		@SuppressWarnings("serial")
 		Properties properties = new Properties() {
 			{
 				put("mail.store.protocol", "imap");

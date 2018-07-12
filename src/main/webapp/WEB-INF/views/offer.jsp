@@ -70,7 +70,7 @@
 							<br>
 							<c:choose>
 								<c:when test="${userHasCurrentWishlist}">
-									<a href='<spring:url value="/markWish/${offer.id}" />'
+									<a href='<spring:url value="/addToCurrentWishlist/${offer.id}" />'
 										class="btn btn-default"> <span
 										class="glyphicon glyphicon-plus" /></span> <spring:message
 											code="offer.url.addtoCurrentWishlist" />
@@ -102,7 +102,7 @@
 										</div>
 										<div class="modal-body">
 											<form method="POST" class="form-horizontal"
-												action='<spring:url value="/selectWishlist/${offer.id}" />'>
+												action='<spring:url value="/addOfferToWishlist/${offer.id}" />'>
 												<input type="hidden" name="${_csrf.parameterName}"
 													value="${_csrf.token}" />
 												<fieldset class="form-check">

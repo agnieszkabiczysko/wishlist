@@ -23,7 +23,7 @@ public class SeleniumRunnerData {
 	}
 
 	public String emailForDefaultUser() {
-		return "wishlistp@gmail.com";
+		return "";
 	}
 
 	public String defaultWishlistToDefaultUser() {
@@ -51,7 +51,7 @@ public class SeleniumRunnerData {
 	}
 
 	public String emailForSecondUser() {
-		return "przepisywspringu@gmail.com";
+		return "";
 	}
 
 	public String friendForDefaultUser() {
@@ -79,7 +79,7 @@ public class SeleniumRunnerData {
 	}
 
 	public String emailForTestUser() {
-		return "testowaniejava@gmail.com";
+		return "";
 	}
 
 	public String defaultWishlistToTestUser() {

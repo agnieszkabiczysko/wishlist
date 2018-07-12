@@ -1,5 +1,9 @@
 package agnieszka.wishlist.service;
 
+import static agnieszka.wishlist.model.RegisterMailState.ACTIVE;
+import static agnieszka.wishlist.service.helper.UUIDGenerator.generateUUID;
+import static java.lang.System.currentTimeMillis;
+
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -10,15 +14,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import agnieszka.wishlist.dao.RegisterMailDao;
 import agnieszka.wishlist.dao.UserDao;
-import agnieszka.wishlist.exception.InvalidRegisterMailIdException;
 import agnieszka.wishlist.model.RegisterMail;
 import agnieszka.wishlist.model.RegisterMailState;
 import agnieszka.wishlist.model.User;
-import agnieszka.wishlist.service.helper.GeneratorUUID;
 
 @Service("registerService")
 @Transactional
 public class RegisterMailServiceImpl implements RegisterMailService {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(RegisterMailServiceImpl.class);
 
 	@Autowired
 	private RegisterMailDao dao;
@@ -26,22 +30,20 @@ public class RegisterMailServiceImpl implements RegisterMailService {
 	@Autowired
 	private UserDao userDao;
 	
-	private final Logger logger = LoggerFactory.getLogger(RegisterMailServiceImpl.class);
-
-	@Override
-	public void saveRegistrationMail(RegisterMail registerMail) {
+	private void saveRegistrationMail(RegisterMail registerMail) {
 		dao.saveRegistrationMail(registerMail);
 	}
 
 	@Override
-	public RegisterMail createRegisterMail(User user) {
+	public RegisterMail recordRegisterMail(User user) {
 		userDao.update(user);
-		RegisterMail activeMail = new RegisterMail(user, GeneratorUUID.generateUUID(), GeneratorUUID.generateUUID(), System.currentTimeMillis(), RegisterMailState.ACTIVE);
+		
+		RegisterMail activeMail = new RegisterMail(user, generateUUID(), generateUUID(), currentTimeMillis(), ACTIVE);
+		
 		saveRegistrationMail(activeMail);
-		List<RegisterMail> userMails = findMailsForUser(user);
-		userMails.stream().filter(RegisterMail::isActive)
-						.filter(mail -> !mail.equals(activeMail))
-						.forEach(this::invalidate);
+		
+		invalidateOtherEmails(user, activeMail);
+		
 		return activeMail;
 	}
 
@@ -51,13 +53,8 @@ public class RegisterMailServiceImpl implements RegisterMailService {
 	}
 
 	@Override
-	public RegisterMail findMailByMailingId(String mailingId) 
-			throws InvalidRegisterMailIdException {
-		RegisterMail mail = dao.findMailByMailingId(mailingId);
-		if (mail == null) {
-			throw new InvalidRegisterMailIdException();
-		}
-		return mail;
+	public RegisterMail findMailByMailingId(String mailingId) {
+		return dao.findMailByMailingId(mailingId);
 	}
 
 	@Override
@@ -66,13 +63,8 @@ public class RegisterMailServiceImpl implements RegisterMailService {
 	}
 
 	@Override
-	public User findUserByMailingId(String mailingId) 
-			throws InvalidRegisterMailIdException {
-		User user = findMailByMailingId(mailingId).getUser();
-		if (user == null) {
-			throw new InvalidRegisterMailIdException();
-		}
-		return user;
+	public User findUserByMailingId(String mailingId) {
+		return findMailByMailingId(mailingId).getUser();
 	}
 
 	@Override
@@ -82,12 +74,23 @@ public class RegisterMailServiceImpl implements RegisterMailService {
 
 	@Override
 	public Boolean isRegisterMailActive(RegisterMail registerMail) {
-		return registerMail.getState().equals(RegisterMailState.ACTIVE);
+		return registerMail.getState() == ACTIVE;
 	}
 	
+	private void invalidateOtherEmails(User user, RegisterMail activeMail) {
+		List<RegisterMail> userMails = findMailsForUser(user);
+		userMails
+				.stream()
+				.filter(RegisterMail::isActive)
+				.filter(mail -> !mail.equals(activeMail))
+				.forEach(this::invalidate);
+	}
+
 	private void invalidate(RegisterMail mail) {
-		logger.debug("Mail {} is deactivated for user {}", mail.getMailingId(), mail.getUser().getUserId());
+		LOGGER.debug("Mail {} is deactivated for user {}", mail.getMailingId(), mail.getUser().getUserId());
+		
 		mail.setState(RegisterMailState.INACTIVE);
+		
 		saveRegistrationMail(mail);
 	}
 

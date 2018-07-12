@@ -19,7 +19,6 @@ import agnieszka.wishlist.model.UserState;
 
 public class RegisterMailDaoImplTest extends EntityDaoImplTest {
 
-
 	private RegisterMail registerMail;
 	private RegisterMail registerMail2;
 	private User user;

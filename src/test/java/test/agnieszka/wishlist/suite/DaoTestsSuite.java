@@ -15,7 +15,6 @@ import test.agnieszka.wishlist.dao.WishlistMailDaoImplTest;
 @RunWith(Suite.class)
 
 @SuiteClasses({
-	//test.agnieszka.wishlist.dao
 	OfferDaoImplTest.class,
 	RegisterMailDaoImplTest.class,
 	UserDaoImplTest.class,

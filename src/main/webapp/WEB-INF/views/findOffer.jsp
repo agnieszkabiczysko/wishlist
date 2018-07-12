@@ -33,20 +33,20 @@
 				</div>
 			</fieldset>
 			<fieldset class="form-check">
-				<label class="control-label col-lg-2" for="searchType"> <spring:message
+				<label class="control-label col-lg-2" for="searchTypeString"> <spring:message
 						code="findOffer.searchOffer.searchType.label" /> &nbsp;
 				</label><br>
 				<br>
 				<div class="form-check" style="text-indent: 2.5cm">
 					<label class="form-check-label"> <input type="radio"
-						class="form-check-input" name="searchType" id="optionName"
+						class="form-check-input" name="searchTypeString" id="optionName"
 						value="name" checked> <spring:message
 							code="findOffer.searchOffer.searchType.name.label" />
 					</label>
 				</div>
 				<div class="form-check" style="text-indent: 2.5cm">
 					<label class="form-check-label"> <input type="radio"
-						class="form-check-input" name="searchType" id="optionVendor"
+						class="form-check-input" name="searchTypeString" id="optionVendor"
 						value="vendor"> <spring:message
 							code="findOffer.searchOffer.searchType.vendor.label" />
 					</label>

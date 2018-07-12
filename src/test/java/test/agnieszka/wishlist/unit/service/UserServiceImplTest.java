@@ -16,10 +16,11 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import agnieszka.wishlist.converter.EmailFromString;
 import agnieszka.wishlist.dao.UserDao;
@@ -27,6 +28,7 @@ import agnieszka.wishlist.model.EmailAddress;
 import agnieszka.wishlist.model.User;
 import agnieszka.wishlist.service.UserServiceImpl;
 
+@RunWith(MockitoJUnitRunner.class)
 public class UserServiceImplTest {
 
 	@Spy
@@ -49,7 +51,6 @@ public class UserServiceImplTest {
 	
 	@Before
 	public void setup() {
-		MockitoAnnotations.initMocks(this);
 		user = getUser();
 		users = getUsers();
 	}
@@ -67,7 +68,7 @@ public class UserServiceImplTest {
 	}
 	
 	@Test
-	public void updateUserinDb() {
+	public void updateUser() {
 		//given
 		doNothing().when(dao).merge(any(User.class));
 		
@@ -84,11 +85,11 @@ public class UserServiceImplTest {
 		when(dao.findUserById(anyInt())).thenReturn(user);
 		
 		//when
-		User foundedUser = userService.findUserById(anyInt());
+		User userFound = userService.findUserById(anyInt());
 		
 		//then
 		verify(dao, times(1)).findUserById(anyInt());
-		assertThat(foundedUser).isEqualTo(user);
+		assertThat(userFound).isEqualTo(user);
 	}
 	
 	@Test
@@ -97,11 +98,11 @@ public class UserServiceImplTest {
 		when(dao.findUserByUserId(anyString())).thenReturn(user);
 		
 		//when
-		User foundedUser = userService.findUserByUserId(anyString());
+		User userFound = userService.findUserByUserId(anyString());
 		
 		//then
 		verify(dao, times(1)).findUserByUserId(anyString());
-		assertThat(foundedUser).isEqualTo(user);
+		assertThat(userFound).isEqualTo(user);
 	}
 	
 	@Test
@@ -110,11 +111,11 @@ public class UserServiceImplTest {
 		when(dao.findUserByEmail(any(EmailAddress.class))).thenReturn(user);
 		
 		//when
-		User foundedUser = userService.findUserByEmail(any(EmailAddress.class));
+		User userFound = userService.findUserByEmail(any(EmailAddress.class));
 		
 		//then
 		verify(dao, times(1)).findUserByEmail(any(EmailAddress.class));
-		assertThat(foundedUser).isEqualTo(user);
+		assertThat(userFound).isEqualTo(user);
 	}
 
 	
@@ -124,11 +125,11 @@ public class UserServiceImplTest {
 		when(dao.findUserByEmail(any(EmailAddress.class))).thenReturn(user);
 		
 		//when
-		User foundedUser = userService.findUserByEmail(anyString());
+		User userFound = userService.findUserByEmail(anyString());
 		
 		//then
 		verify(dao, times(1)).findUserByEmail(any(EmailAddress.class));
-		assertThat(foundedUser).isEqualTo(user);
+		assertThat(userFound).isEqualTo(user);
 	}
 	
 	@Test
@@ -149,10 +150,10 @@ public class UserServiceImplTest {
 		when(dao.getAllUsers()).thenReturn(users);
 		
 		//when
-		Boolean ifIdUnique = userService.userIdExists(user.getUserId());
+		Boolean idIsUnique = userService.userIdExists(user.getUserId());
 				
 		//then
-		assertTrue(ifIdUnique);
+		assertTrue(idIsUnique);
 	}
 	
 	@Test
@@ -161,10 +162,10 @@ public class UserServiceImplTest {
 		when(dao.getAllUsers()).thenReturn(users);
 		
 		//when
-		Boolean ifIdUnique = userService.userIdExists("uniqueId");
+		Boolean idIsUnique = userService.userIdExists("uniqueId");
 		
 		//then
-		assertFalse(ifIdUnique);
+		assertFalse(idIsUnique);
 	}
 	
 	@Test
@@ -173,10 +174,10 @@ public class UserServiceImplTest {
 		when(dao.getAllUsers()).thenReturn(users);
 		
 		//when
-		Boolean ifEmailUnique = userService.userEmailExists(users.get(0).getEmail());
+		Boolean emaiIslUnique = userService.userEmailExists(users.get(0).getEmail());
 		
 		//then
-		assertTrue(ifEmailUnique);
+		assertTrue(emaiIslUnique);
 	}
 	
 	@Test
@@ -186,10 +187,10 @@ public class UserServiceImplTest {
 		users.get(0).setEmail(emailAddress);
 		
 		//when
-		Boolean ifEmailUnique = userService.userEmailExists(new EmailAddress());
+		Boolean emailIsUnique = userService.userEmailExists(new EmailAddress());
 		
 		//then
-		assertFalse(ifEmailUnique);
+		assertFalse(emailIsUnique);
 	}
 	
 	@Test
@@ -198,11 +199,11 @@ public class UserServiceImplTest {
 		when(dao.getAllUsers()).thenReturn(users);
 		
 		//when
-		List<User> foundedUsers = userService.getAllUsers();
+		List<User> usersFound = userService.getAllUsers();
 		
 		//then
 		verify(dao, times(1)).getAllUsers();
-		assertThat(foundedUsers).isEqualTo(users);
+		assertThat(usersFound).isEqualTo(users);
 	}
 	
 	@Test
@@ -211,23 +212,11 @@ public class UserServiceImplTest {
 		when(dao.findUserByUserId(anyString())).thenReturn(user);
 		
 		//when
-		User foundedUser = userService.findUserByUserId(anyString());
+		User userFound = userService.findUserByUserId(anyString());
 		
 		//then
 		verify(dao, times(1)).findUserByUserId(anyString());
-		assertThat(foundedUser).isEqualTo(user);
-	}
-	
-	@Test
-	public void saveRoleForUser() {
-		//given
-		doNothing().when(dao).merge(any(User.class));
-		
-		//when
-		userService.saveRoleUserForUser(user);
-		
-		//then
-		verify(dao, times(1)).merge(any(User.class));
+		assertThat(userFound).isEqualTo(user);
 	}
 	
 	private User getUser() {

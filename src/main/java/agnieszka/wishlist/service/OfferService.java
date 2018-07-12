@@ -6,7 +6,7 @@ import agnieszka.wishlist.model.Offer;
 
 public interface OfferService {
 
-	List<Offer> getAllOffers();
+	List<Offer> getOffers();
 
 	Offer findOfferById(int id);
 

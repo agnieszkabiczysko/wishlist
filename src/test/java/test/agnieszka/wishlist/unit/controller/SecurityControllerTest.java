@@ -4,16 +4,17 @@ import static org.junit.Assert.assertEquals;
 
 import java.security.Principal;
 
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.ui.ModelMap;
 
 import agnieszka.wishlist.controller.SecurityController;
 
+@RunWith(MockitoJUnitRunner.class)
 public class SecurityControllerTest {
 
 	@Mock
@@ -24,11 +25,6 @@ public class SecurityControllerTest {
 	
 	@InjectMocks
 	private SecurityController controller;
-	
-	@Before
-	public void setup() {
-		MockitoAnnotations.initMocks(this);
-	}
 	
 	@Test
 	public void login() {

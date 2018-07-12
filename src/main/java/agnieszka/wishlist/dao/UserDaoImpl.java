@@ -17,6 +17,16 @@ public class UserDaoImpl extends AbstractDao<Integer, User> implements UserDao {
 		persist(user);
 	}
 
+	
+	@Override
+	public void merge(User user) {
+		super.merge(user);
+	}
+	
+	public void update(User user) {
+		super.update(user);
+	}
+
 	@Override
 	public User findUserById(int id) {
 		return getByKey(id);

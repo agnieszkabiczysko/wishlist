@@ -1,5 +1,7 @@
 package agnieszka.wishlist.model;
 
+import static agnieszka.wishlist.model.WishState.PURCHASED;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -17,7 +19,6 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 @Table(name = "wish")
 public class Wish {
 
-	
 	public Wish() {
 		super();
 		this.state = WishState.ACTIVE;
@@ -31,10 +32,10 @@ public class Wish {
 
 	@Id
 	@Column
-	@GeneratedValue(strategy=GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private int id;
 	
-	@Column(nullable=false)
+	@Column(nullable = false)
 	private WishState state;
 	
 	@ManyToOne
@@ -44,7 +45,10 @@ public class Wish {
 	@ManyToOne
 	@JoinColumn(name = "fulfiller_id")
 	private User fulfiller;
-
+	
+	@ManyToOne
+	@JoinColumn(name = "wishlist_id")
+	private Wishlist wishlist;
 
 	public int getId() {
 		return id;
@@ -76,6 +80,18 @@ public class Wish {
 
 	public void setState(WishState state) {
 		this.state = state;
+	}
+
+	public Wishlist getWishlist() {
+		return wishlist;
+	}
+
+	public void setWishlist(Wishlist wishlist) {
+		this.wishlist = wishlist;
+	}
+	
+	public boolean isPurchased() {
+		return state == PURCHASED;
 	}
 
 	@Override

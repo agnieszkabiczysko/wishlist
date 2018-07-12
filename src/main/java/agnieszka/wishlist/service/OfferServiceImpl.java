@@ -13,12 +13,11 @@ import agnieszka.wishlist.model.Offer;
 @Transactional
 public class OfferServiceImpl implements OfferService {
 
-	
 	@Autowired
 	private OfferDao dao;
 	
 	@Override
-	public List<Offer> getAllOffers() {
+	public List<Offer> getOffers() {
 		return dao.getAllOffers();
 	}
 

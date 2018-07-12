@@ -35,7 +35,8 @@
 		</div>
 	</section>
 	<section class="container">
-		<form:form method="POST" modelAttribute="offer"
+		<spring:url value="/add" var="newOfferUrl" />
+		<form:form action="${newOfferUrl}?${_csrf.parameterName}=${_csrf.token}" method="post" modelAttribute="offer"
 			class="form-horizontal" enctype="multipart/form-data">
 			<form:input type="hidden" path="id" id="id" />
 			<fieldset>

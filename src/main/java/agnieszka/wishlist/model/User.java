@@ -23,11 +23,9 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-
 @Entity
 @Table(name = "user")
 public class User {
-	
 	
 	public User() {
 		super();
@@ -65,19 +63,19 @@ public class User {
 	@Column(nullable=false)
     private UserState state=UserState.INACTIVE;
 	
-	@ManyToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL)
+	@ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@JoinTable(name = "user_user_profile",
 			joinColumns = {@JoinColumn(name = "user_id")},
 			inverseJoinColumns = {@JoinColumn(name = "user_profile_id")})
 	private Set<UserProfile> userProfiles = new HashSet<>();
 		
-	@OneToMany(cascade=CascadeType.ALL, mappedBy = "offerSeller", orphanRemoval=true, fetch = FetchType.EAGER)
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "offerSeller", orphanRemoval = true, fetch = FetchType.EAGER)
 	private Set<Offer> offers = new HashSet<>();
 	
-	@OneToMany(cascade=CascadeType.ALL, mappedBy = "wisher", orphanRemoval=true)
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "wisher", orphanRemoval = true)
 	private Set<Wishlist> wishlists = new HashSet<>();
 
-	@OneToMany(cascade=CascadeType.ALL, mappedBy = "fulfiller", orphanRemoval = true)
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "fulfiller", orphanRemoval = true)
 	private Set<Wish> fulfills = new HashSet<>();
 	
 	@ManyToMany(fetch = FetchType.EAGER)
@@ -185,11 +183,15 @@ public class User {
 	}
 	
 	public void addFriend(User friend) {
-		getFriends().add(friend);
+		friends.add(friend);
+	}
+	
+	public boolean isFriendOf(User anotherUser) {
+		return anotherUser.friends.contains(this);
 	}
 	
 	public void addUserProfile(UserProfile userProfile) {
-		getUserProfiles().add(userProfile);
+		userProfiles.add(userProfile);
 	}
 	
 	@Override

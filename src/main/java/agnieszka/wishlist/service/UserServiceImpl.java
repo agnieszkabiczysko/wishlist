@@ -11,9 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import agnieszka.wishlist.dao.UserDao;
 import agnieszka.wishlist.model.EmailAddress;
 import agnieszka.wishlist.model.User;
-import agnieszka.wishlist.model.UserProfile;
 import agnieszka.wishlist.model.UserState;
-import agnieszka.wishlist.model.Wishlist;
 
 @Service("userService")
 @Transactional
@@ -21,9 +19,6 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private UserDao dao;
-	
-	@Autowired
-	private UserPreferencesService preferencesService;
 	
 	@Override
 	public void save(User user) {
@@ -56,12 +51,6 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public void saveRoleUserForUser(User user) {
-		user.addUserProfile(new UserProfile());
-		update(user);
-	}
-
-	@Override
 	public void setPasswordAndActivateUser(User user, String userPassword) {
 		user.setPassword(userPassword);
 		user.setState(UserState.ACTIVE);
@@ -84,27 +73,26 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Override
-	public User getCurrentUser(String name) {
-		Authentication authentication = SecurityContextHolder
-				.getContext().getAuthentication();
+	public User getCurrentUser() {
+		Authentication authentication = getAuthentication();
+		
 		if (authentication == null) {
 			return null;
 		}
-		org.springframework.security.core.userdetails.User currentUser
-			= (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-	    String username = currentUser.getUsername();
-	    User user = findUserByUserId(username);
-		return user;
+		
+		org.springframework.security.core.userdetails.User userPrincipal = getUserPrincipal(authentication);
+		
+	    String userId = userPrincipal.getUsername();
+	    
+	    return findUserByUserId(userId);
 	}
 
-	@Override
-	public void setCurrentWishlist(User user, Wishlist wishlist) {
-		preferencesService.updateCurrentWishlist(user, wishlist);
+	private Authentication getAuthentication() {
+		return SecurityContextHolder.getContext().getAuthentication();
 	}
 
-	@Override
-	public Wishlist getCurrentWishlist(User user) {
-		return preferencesService.findUserPreferencesForUser(user).getCurrentWishlist();
+	private org.springframework.security.core.userdetails.User getUserPrincipal(Authentication authentication) {
+		return (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
 	}
 
 }

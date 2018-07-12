@@ -11,10 +11,11 @@ import static org.mockito.Mockito.when;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import agnieszka.wishlist.dao.UserPreferencesDao;
 import agnieszka.wishlist.model.User;
@@ -22,6 +23,7 @@ import agnieszka.wishlist.model.UserPreferences;
 import agnieszka.wishlist.model.Wishlist;
 import agnieszka.wishlist.service.UserPreferencesServiceImpl;
 
+@RunWith(MockitoJUnitRunner.class)
 public class UserPreferencesServiceImplTest {
 
 	@Mock
@@ -41,7 +43,6 @@ public class UserPreferencesServiceImplTest {
 	
 	@Before
 	public void setup() {
-		MockitoAnnotations.initMocks(this);
 		userPreferences = getUserPreferences();
 	}
 	
@@ -63,11 +64,11 @@ public class UserPreferencesServiceImplTest {
 		when(dao.findUserPreferencesForUser(any(User.class))).thenReturn(userPreferences);
 		
 		//when
-		UserPreferences foundedPreferences = preferencesService.findUserPreferencesForUser(any(User.class));
+		UserPreferences preferencesFound = preferencesService.findUserPreferencesForUser(any(User.class));
 		
 		//then
 		verify(dao, times(1)).findUserPreferencesForUser(any(User.class));
-		assertThat(foundedPreferences).isEqualTo(userPreferences);
+		assertThat(preferencesFound).isEqualTo(userPreferences);
 	}
 	
 	@Test

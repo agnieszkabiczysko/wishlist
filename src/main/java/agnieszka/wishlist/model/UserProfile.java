@@ -19,7 +19,7 @@ public class UserProfile {
 	@Column
 	private int id;
 	
-	@Column(length=15, nullable=false)
+	@Column(length = 15, nullable = false)
 	private String type = UserProfileType.USER.name();
 
 	public int getId() {

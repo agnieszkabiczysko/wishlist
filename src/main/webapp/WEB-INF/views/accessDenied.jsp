@@ -6,7 +6,7 @@
 <head>
 <link rel="stylesheet"
 	href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
-<title><spring:message code="lackOfPermission.title" /></title>
+<title><spring:message code="accessDenied.title" /></title>
 </head>
 <body>
 	<%@ include file="navigation.jsp"%>
@@ -16,7 +16,7 @@
 	<section>
 		<div class="col-md-offset-5 col-md-4">
 			<h4>
-				<spring:message code="lackOfPermission.information" />
+				<spring:message code="accessDenied.information" />
 			</h4>
 		</div>
 	</section>

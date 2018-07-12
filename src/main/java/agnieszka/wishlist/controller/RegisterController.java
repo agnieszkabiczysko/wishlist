@@ -1,6 +1,7 @@
 package agnieszka.wishlist.controller;
 
-import javax.servlet.http.HttpServletRequest;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,134 +11,112 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import agnieszka.wishlist.common.ApplicationMailer;
-import agnieszka.wishlist.common.UrlHelper;
-import agnieszka.wishlist.exception.InvalidRegisterMailIdException;
-import agnieszka.wishlist.model.Password;
+import agnieszka.wishlist.model.ConfirmationMail;
 import agnieszka.wishlist.model.RegisterMail;
-import agnieszka.wishlist.model.RegisterMailState;
 import agnieszka.wishlist.model.User;
-import agnieszka.wishlist.service.PasswordService;
+import agnieszka.wishlist.model.UserProfile;
+import agnieszka.wishlist.service.ConfirmationMailService;
 import agnieszka.wishlist.service.RegisterMailService;
 import agnieszka.wishlist.service.UserService;
 
 @Controller
 public class RegisterController {
 
+	private static final String USER_REGISTRATION_FORM_VIEW = "userRegistration";
+	private static final String EMAIL_SENT_VIEW = "emailSent";
+
 	@Autowired
 	private UserService userService;
 	
 	@Autowired
-	private RegisterMailService registerService;
+	private RegisterMailService registerMailService;
 	
 	@Autowired
-	private PasswordService passwordService;
+	private ConfirmationMailService confirmationMailService;
 	
 	@Autowired
 	private ApplicationMailer mailer;
 	
-	@Autowired
-	private UrlHelper urlHelper;
-	
-	@RequestMapping(value = "/register", method = RequestMethod.GET)
+	@RequestMapping(value = "/register")
 	public String showRegisterForm(ModelMap model, @ModelAttribute("user") User user) {
 		model.addAttribute("user", user);
-		return "userRegistration";
+		
+		return USER_REGISTRATION_FORM_VIEW;
 	}
 	
-	@RequestMapping(value = "/register", method = RequestMethod.POST)
-	public String registerUser(ModelMap model, @ModelAttribute("user") @Valid User user,
-			HttpServletRequest request, BindingResult result) {
+	@RequestMapping(value = "/register", method = POST)
+	public String registerUser(ModelMap model, @ModelAttribute("user") @Valid User user, BindingResult result) {
 		if (result.hasErrors()) {
-			return "userRegistration";
+			return USER_REGISTRATION_FORM_VIEW;
 		}
 		
-		if (userService.userIdExists(user.getUserId())) {
+		if (userNameAlreadyExists(user.getUserId())) {
 			model.addAttribute("userNameAlreadyExists", "true");
-			return "userRegistration";
-		} else {
-			userService.save(user);
-			userService.saveRoleUserForUser(user);
-			
-			RegisterMail registerMail = sendRegisterEmail(user, urlHelper.createRegisterUrl(request));
-			
-			model.addAttribute("user", user);
-			return "redirect:/checkmail/"
-						+ registerMail.getConfirmationId();
+			return USER_REGISTRATION_FORM_VIEW;
 		}
-	}
-	
-	@RequestMapping(value = "/register/{mailingId}", method = RequestMethod.GET)
-	public String showSetPasswordForm(ModelMap model, @PathVariable("mailingId") String mailingId,
-							@ModelAttribute("userPassword") Password userPassword) {
-		try { 
-			return generateSetPasswordView(model, mailingId);
-		} catch (InvalidRegisterMailIdException e) {
-			model.addAttribute("message", "Nieprawidłowy mail id");
-			return "error";
-		}
-	}
 		
-	@RequestMapping(value = "/register/{mailingId}", method = RequestMethod.POST)
-	public String registerUserConfirmed(ModelMap model, @PathVariable("mailingId") String mailingId,
-							@ModelAttribute("userPassword") @Valid Password userPassword,
-							BindingResult result) {
-		try {
-			return setPassword(model, mailingId, userPassword, result);
-		} catch (InvalidRegisterMailIdException e) {
-			model.addAttribute("message", "Nieprawidłowy mail id");
-			return "error";
-		}
+		persist(user);
+		
+		RegisterMail registerMail = sendAndRecordEmail(user);
+		
+		model.addAttribute("user", user);
+		
+		return redirectToEmailSentPage(registerMail);
 	}
 
-	@RequestMapping(value = "/checkmail/{confirmationId}", method = RequestMethod.GET)
-	public String checkMail() {
-		return "checkMail";
+	@RequestMapping(value = "/emailSent/{mailingId}")
+	public String emailSent() {
+		return EMAIL_SENT_VIEW;
 	}
 	
-	@RequestMapping(value = "/checkmail/{confirmationId}", method = RequestMethod.POST)
-	public String sendMailAgain(ModelMap model, @PathVariable("confirmationId") String confirmationId, HttpServletRequest request) {
-		User user = registerService.findUserByConfirmationId(confirmationId);
-		RegisterMail registerMail = sendRegisterEmail(user, urlHelper.createRegisterUrl(request));
-		return "redirect:/checkmail/"+registerMail.getConfirmationId();
+	@RequestMapping(value = "/emailSent/{mailingId}", method = POST)
+	public String sendMailAgain(ModelMap model, @PathVariable("mailingId") String mailingId) {
+		User user = findUserByMailingId(mailingId);
+		
+		RegisterMail registerMail = sendAndRecordEmail(user);
+		
+		return redirectToEmailSentPage(registerMail);
 	}
 
-	private RegisterMail sendRegisterEmail(User user, String url) {
-		RegisterMail registerMail = registerService.createRegisterMail(user);
-		String body = "Jeśli chcesz się zarejestrować, kliknij w poniższych link: \n" 
-				+ url + registerMail.getMailingId()
-				+ "\n\nMail został wygenerowany automatycznie. Prosimy na niego nie odpowiadać.";
-		mailer.sendMessage(user.getEmail(), "Register", body);
+	private boolean userNameAlreadyExists(String userId) {
+		return userService.userIdExists(userId);
+	}
+	
+	private void persist(User user) {
+		user.addUserProfile(new UserProfile());
+		userService.save(user);
+	}
+
+	private RegisterMail sendAndRecordEmail(User user) {
+		RegisterMail registerMail = recordEmail(user);
+		
+		ConfirmationMail email = prepareEmail(registerMail);
+		
+		sendRegisterEmailTo(user, email);
+		
 		return registerMail;
 	}
-	
-	private String generateSetPasswordView(ModelMap model, String mailingId) throws InvalidRegisterMailIdException {
-		RegisterMail registerMail;
-		registerMail = registerService.findMailByMailingId(mailingId);
-		if (registerMail.getState() == RegisterMailState.ACTIVE) {
-			return "setPassword";
-		} else {
-			model.addAttribute("inactiveMail", true);
-			model.addAttribute("registerMail", registerMail);
-			return "redirect:/checkmail/"+registerMail.getConfirmationId();
-		}
+
+	private RegisterMail recordEmail(User user) {
+		return registerMailService.recordRegisterMail(user);
 	}
-	
-	private String setPassword(ModelMap model, String mailingId, Password userPassword, BindingResult result)
-			throws InvalidRegisterMailIdException {
-		if (result.hasErrors()) {
-			return "setPassword";
-		}
-		if (userPassword.isValid()) {
-			userService.setPasswordAndActivateUser(registerService.findUserByMailingId(mailingId),
-						passwordService.createPasswordHash(userPassword));
-			return "redirect:/offers";
-		} else {
-			model.addAttribute("error", "true");
-			return "setPassword";
-		}
+
+	private ConfirmationMail prepareEmail(RegisterMail registerMail) {
+		return confirmationMailService.prepareMail(registerMail);
+	}
+
+	private String redirectToEmailSentPage(RegisterMail registerMail) {
+		return "redirect:/emailSent/" + registerMail.getMailingId();
+	}
+
+	private User findUserByMailingId(String mailingId) {
+		return registerMailService.findUserByMailingId(mailingId);
+	}
+
+	private void sendRegisterEmailTo(User user, ConfirmationMail email) {
+		mailer.sendMessage(user.getEmail(), email.getTitle(), email.getBody());
 	}
 	
 }

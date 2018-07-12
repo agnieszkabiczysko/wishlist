@@ -8,7 +8,7 @@
 <head>
 <link rel="stylesheet"
 	href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
-<title><spring:message code="checkMail.title" /></title>
+<title><spring:message code="emailSent.title" /></title>
 </head>
 <body>
 	<%@ include file="navigation.jsp"%>
@@ -20,28 +20,28 @@
 		<form method="POST" class="form-horizontal">
 			<fieldset>
 				<legend>
-					<spring:message code="checkMail.legend" />
+					<spring:message code="emailSent.legend" />
 				</legend>
 				<c:choose>
 					<c:when test="${inactiveMail}">
 						<p>
-							<spring:message code="checkMail.inactiveMail" />
+							<spring:message code="emailSent.inactiveMail" />
 						</p>
 					</c:when>
 					<c:otherwise>
 						<p>
-							<spring:message code="checkMail.informactionAboutLink" />
+							<spring:message code="emailSent.informactionAboutLink" />
 						</p>
 					</c:otherwise>
 				</c:choose>
 				<p>
-					<spring:message code="checkMail.resendMail" />
+					<spring:message code="emailSent.resendMail" />
 					<input type="hidden" name="${_csrf.parameterName}"
 						value="${_csrf.token}" />
 					<button type="submit" id="btnSendMail" class="btn btn-default"
 						value="Wyślij ponownie">
 						<span class="glyphicon glyphicon-send"></span>
-						<spring:message code="checkMail.sendAgain" />
+						<spring:message code="emailSent.sendAgain" />
 					</button>
 				</p>
 			</fieldset>
@@ -49,7 +49,7 @@
 
 		<a href="<spring:url value="/offers" />" class="btn btn-default">
 			<span class="glyphicon-hand-left glyphicon"></span> <spring:message
-				code="checkMail.goToOffersPage" />
+				code="emailSent.goToOffersPage" />
 		</a>
 	</section>
 </body>

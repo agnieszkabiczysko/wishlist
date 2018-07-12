@@ -18,6 +18,6 @@ public class CurrentUserHelper {
 		if (principal == null) {
 			return null;
 		}
-		return userService.getCurrentUser(principal.getName());
+		return userService.getCurrentUser();
 	}
 }

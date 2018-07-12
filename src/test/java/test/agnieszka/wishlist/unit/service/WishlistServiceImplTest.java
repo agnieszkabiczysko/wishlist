@@ -1,11 +1,13 @@
 package test.agnieszka.wishlist.unit.service;
 
+import static agnieszka.wishlist.model.WishlistState.PRIVATE;
+import static agnieszka.wishlist.model.WishlistState.PUBLIC;
+import static agnieszka.wishlist.model.WishlistState.SHARED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -16,24 +18,25 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import agnieszka.wishlist.converter.EmailFromString;
 import agnieszka.wishlist.dao.UserDao;
 import agnieszka.wishlist.dao.WishlistDao;
-import agnieszka.wishlist.model.EmailAddress;
 import agnieszka.wishlist.model.Offer;
 import agnieszka.wishlist.model.User;
-import agnieszka.wishlist.model.Wish;
+import agnieszka.wishlist.model.UserPreferences;
 import agnieszka.wishlist.model.Wishlist;
 import agnieszka.wishlist.model.WishlistState;
-import agnieszka.wishlist.model.WishlistTermType;
+import agnieszka.wishlist.service.UserPreferencesService;
 import agnieszka.wishlist.service.UserService;
 import agnieszka.wishlist.service.WishlistServiceImpl;
 
+@RunWith(MockitoJUnitRunner.class)
 public class WishlistServiceImplTest {
 
 	@Mock
@@ -45,8 +48,8 @@ public class WishlistServiceImplTest {
 	@Mock
 	private UserService userService;
 	
-	@Spy
-	private Wishlist wishlist;
+	@Mock
+	private UserPreferencesService preferencesService;
 	
 	@Spy
 	private Set<Wishlist> wishlists = new HashSet<>();
@@ -54,14 +57,18 @@ public class WishlistServiceImplTest {
 	@InjectMocks
 	private WishlistServiceImpl wishlistService;
 
-	private User user;
-	
 	@Mock
 	private EmailFromString emailFromString;
+
+	private Wishlist wishlist;
+	
+	private Offer o1;
+	private Offer o2;
+	
+	private User user;
 	
 	@Before
 	public void setup() {
-		MockitoAnnotations.initMocks(this);
 		wishlist = getWishlist();
 		wishlists.add(wishlist);
 		user = getUser();
@@ -73,11 +80,11 @@ public class WishlistServiceImplTest {
 		when(dao.findWishlistById(anyInt())).thenReturn(wishlist);
 		
 		//when
-		Wishlist foundedWishlist = wishlistService.findWishlistById(anyInt());
+		Wishlist wishlistFound = wishlistService.findWishlistById(anyInt());
 		
 		//then
 		verify(dao, times(1)).findWishlistById(anyInt());
-		assertThat(foundedWishlist).hasSameClassAs(wishlist);
+		assertThat(wishlistFound).hasSameClassAs(wishlist);
 	}
 	
 	@Test
@@ -86,24 +93,23 @@ public class WishlistServiceImplTest {
 		when(dao.getUserWishlists(any(User.class))).thenReturn(wishlists);
 		
 		//when
-		Set<Wishlist> foundedWishlists = wishlistService.getAllWishlistsForUser(any(User.class));
+		Set<Wishlist> wishlistsFound = wishlistService.findWishlistsOf(any(User.class));
 		
 		//then
 		verify(dao, times(1)).getUserWishlists(any(User.class));
-		assertThat(foundedWishlists).hasSameElementsAs(wishlists);
+		assertThat(wishlistsFound).hasSameElementsAs(wishlists);
 	}
 	
 	@Test
 	public void userWantsOffer() {
 		//given
 		when(dao.getUserWishlists(any(User.class))).thenReturn(wishlists);
-		Offer offer = wishlists.iterator().next().getWishes().iterator().next().getOffer();
 		
 		//when
-		Boolean ifWants = wishlistService.userWantsOffer(user, offer);
+		Boolean userWants = wishlistService.userWantsOffer(user, o1);
 		
 		//then
-		assertTrue(ifWants);
+		assertTrue(userWants);
 	}
 	
 	@Test
@@ -113,14 +119,14 @@ public class WishlistServiceImplTest {
 		Offer newOffer = new Offer();
 		
 		//when
-		Boolean ifWants = wishlistService.userWantsOffer(user, newOffer);
+		Boolean userWants = wishlistService.userWantsOffer(user, newOffer);
 		
 		//then
-		assertFalse(ifWants);
+		assertFalse(userWants);
 	}
 	
 	@Test
-	public void saveWishlistInDb() {
+	public void saveWishlist() {
 		//given
 		doNothing().when(dao).save(any(Wishlist.class));
 		
@@ -132,7 +138,7 @@ public class WishlistServiceImplTest {
 	}
 	
 	@Test
-	public void updateWishlistInDb() {
+	public void updateWishlist() {
 		//given
 		doNothing().when(dao).update(any(Wishlist.class));
 		
@@ -144,115 +150,93 @@ public class WishlistServiceImplTest {
 	}
 	
 	@Test
-	public void findWishlistsIfTermTypeEqualsUser() {
+	public void sharedAndPublicWishlistsForUser() {
 		//given
+		Set<Wishlist> wishlists = new HashSet<>();
+		Wishlist publicWishlist = getWishlist("A", PUBLIC);
+		Wishlist anotherPublicWishlist = getWishlist("B", PUBLIC);
+		Wishlist privateWishlist = getWishlist("C", PRIVATE);
+		Wishlist sharedWishlist = getWishlist("D", SHARED);
+		
+		wishlists.add(publicWishlist);
+		wishlists.add(privateWishlist);
+		wishlists.add(sharedWishlist);
+		wishlists.add(anotherPublicWishlist);
+		
 		when(dao.getUserWishlists(any(User.class))).thenReturn(wishlists);
 		
 		//when
-		Set<Wishlist> foundedWishlists = wishlistService.findWishlistsByTerm(WishlistTermType.USERID, anyString());
+		Set<Wishlist> wishlistsFound = wishlistService.publicAndSharedWishlistsOf(user);
 		
 		//then
 		verify(dao, times(1)).getUserWishlists(any(User.class));
-		assertThat(foundedWishlists).hasSameElementsAs(wishlists);
+		assertThat(wishlistsFound).containsOnly(publicWishlist, anotherPublicWishlist, sharedWishlist);
 	}
-	
-	@Test
-	public void findWishlistsifTermTypeEqualsEmail() {
-		//given
-		when(userDao.findUserByEmail(any(EmailAddress.class))).thenReturn(user);
-		when(dao.getUserWishlists(any(User.class))).thenReturn(wishlists);
-		
-		//when
-		Set<Wishlist> foundedWishlists = wishlistService.findWishlistsByTerm(WishlistTermType.EMAIL, anyString());
-		
-		//then
-		verify(dao, times(1)).getUserWishlists(any(User.class));
-		assertThat(foundedWishlists).hasSameElementsAs(wishlists);
-	}
-	
 	
 	@Test
 	public void findPublicWishlists() {
 		//given
-		when(dao.getUserWishlists(any(User.class))).thenReturn(wishlists);
-		wishlists.iterator().next().setState("PUBLIC");
+		Set<Wishlist> wishlists = new HashSet<>();
+		Wishlist publicWishlist = getWishlist("A", PUBLIC);
+		Wishlist anotherPublicWishlist = getWishlist("B", PUBLIC);
+		Wishlist privateWishlist = getWishlist("C", PRIVATE);
+		Wishlist sharedWishlist = getWishlist("D", SHARED);
 		
-		//when
-		Set<Wishlist> foundedWishlists = wishlistService
-				.findWishlistsByTermAndState(WishlistTermType.USERID, anyString(), WishlistState.PUBLIC);
+		wishlists.add(publicWishlist);
+		wishlists.add(privateWishlist);
+		wishlists.add(sharedWishlist);
+		wishlists.add(anotherPublicWishlist);
 		
-		//then
-		verify(dao, times(1)).getUserWishlists(any(User.class));
-		assertThat(foundedWishlists).hasSameElementsAs(wishlists);
-	}
+		when(dao.getUserWishlists(user)).thenReturn(wishlists);
 
-	@Test
-	public void findSharedWishlists() {
-		//given
-		when(userService.findUserByUserId(anyString())).thenReturn(user);
-		when(dao.getUserWishlists(any(User.class))).thenReturn(wishlists);
-		wishlists.iterator().next().setState("SHARED");
-		
 		//when
-		Set<Wishlist> foundedWishlists = wishlistService
-				.findWishlistsByTermAndState(WishlistTermType.USERID, anyString(), WishlistState.SHARED);
+		Set<Wishlist> wishlistsFound = wishlistService.findPublicWishlistsOf(user);
 		
 		//then
-		verify(dao, times(1)).getUserWishlists(any(User.class));
-		assertThat(foundedWishlists).hasSameElementsAs(wishlists);
+		assertThat(wishlistsFound).containsOnly(publicWishlist, anotherPublicWishlist);
 	}
 	
 	@Test
-	public void findPrivateWishlists() {
+	public void testRetrieveCurrentWishList() {
 		//given
-		when(dao.getUserWishlists(any(User.class))).thenReturn(wishlists);
-		wishlists.iterator().next().setState("PRIVATE");
+		UserPreferences userPreferences = new UserPreferences(user, wishlist);
+		when(preferencesService.findUserPreferencesForUser(user)).thenReturn(userPreferences);
 		
 		//when
-		Set<Wishlist> foundedWishlists = wishlistService
-				.findWishlistsByTermAndState(WishlistTermType.USERID, anyString(), WishlistState.PRIVATE);
-				
+		Wishlist currentWishlist = wishlistService.getCurrentWishlistOf(user);
+		
 		//then
-		verify(dao, times(1)).getUserWishlists(any(User.class));
-		assertThat(foundedWishlists).hasSameElementsAs(wishlists);
+		assertThat(currentWishlist).isEqualTo(wishlist);
 	}
 	
 	@Test
-	public void sharedAndPublicWishlistsForUser() {
-		//given
-		wishlists.iterator().next().setState("SHARED");
-		
-		Wishlist newWishlist = new Wishlist();
-		newWishlist.setState("PUBLIC");
-		wishlists.add(newWishlist);
-		
-		when(dao.getUserWishlists(any(User.class))).thenReturn(wishlists);
-		
-		User friend = new User();
-		HashSet<User> friends = new HashSet<>();
-		friends.add(friend);
-		user.setFriends(friends);
-		
+	public void testStoringCurrentWishlist() {
 		//when
-		Set<Wishlist> foundedWishlists = wishlistService.sharedAndPublicWishlistsForUser(user, friend);
+		wishlistService.setCurrentWishlistOf(user, wishlist);
 		
 		//then
-		verify(dao, times(1)).getUserWishlists(any(User.class));
-		assertThat(foundedWishlists).hasSameElementsAs(wishlists);
+		verify(preferencesService, times(1)).updateCurrentWishlist(user, wishlist);
 	}
 	
 	private Wishlist getWishlist() {
-		Offer o1 = new Offer();
+		Wishlist wishlist = new Wishlist();
+		
+		o1 = new Offer();
 		o1.setName("Oferta1");
-		Wish w1 = new Wish(o1);
 		
-		Offer o2 = new Offer();
+		o2 = new Offer();
 		o2.setName("Oferta2");
-		Wish w2 = new Wish(o2);
 		
-		wishlist.add(w1);
-		wishlist.add(w2);
+		wishlist.add(o1);
+		wishlist.add(o2);
 		
+		return wishlist;
+	}
+	
+	private Wishlist getWishlist(String name, WishlistState state) {
+		Wishlist wishlist = getWishlist();
+		wishlist.setState(state.name());
+		wishlist.setName(name);
 		return wishlist;
 	}
 	

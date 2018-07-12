@@ -1,9 +1,11 @@
 package agnieszka.wishlist.service;
 
-import java.util.ArrayList;
+import static java.util.stream.Collectors.toList;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,26 +19,37 @@ import agnieszka.wishlist.model.UserState;
 
 @Service("customUserDetailsService")
 public class CustomUserDetailsService implements UserDetailsService {
+	
+	@Value("${user.notFound}")
+	private String userNotFoundMessage;
 
 	@Autowired
 	private UserService userService;
 	
-	@Transactional(readOnly=true)
+	@Transactional(readOnly = true)
 	@Override
 	public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
 		User user = userService.findUserByUserId(userId);
+		
 		if (user == null) {
-			throw new UsernameNotFoundException("Username not found");
+			throw new UsernameNotFoundException(userNotFoundMessage);
 		}
-		return new org.springframework.security.core.userdetails.User(user.getUserId(), user.getPassword(), 
-                user.getState()==UserState.ACTIVE, true, true, true, getGrantedAuthorities(user));
+		
+		return new org.springframework.security.core.userdetails.User(
+				user.getUserId(),
+				user.getPassword(), 
+                user.getState() == UserState.ACTIVE,
+                true,
+                true,
+                true,
+                getGrantedAuthorities(user));
 	}
 
 	private List<GrantedAuthority> getGrantedAuthorities(User user) {
-		List<GrantedAuthority> authorities = new ArrayList<>();
-		user.getUserProfiles().stream()
-			.map(up -> authorities.add(new SimpleGrantedAuthority("ROLE_" + up.getType())));
-		return authorities;
+		return user.getUserProfiles()
+				.stream()
+				.map(profile -> new SimpleGrantedAuthority("ROLE_" + profile.getType()))
+				.collect(toList());
 	}
 
 }

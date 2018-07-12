@@ -1,5 +1,7 @@
 package agnieszka.wishlist.model;
 
+import static agnieszka.wishlist.model.RegisterMailState.ACTIVE;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -35,7 +37,6 @@ public class RegisterMail {
 	@JoinColumn(name = "user_id")
 	private User user;
 
-	
 	public RegisterMail() {
 		super();
 	}
@@ -91,8 +92,8 @@ public class RegisterMail {
 		this.state = state;
 	}
 	
-	public static boolean isActive(RegisterMail mail) {
-		return mail.getState() == RegisterMailState.ACTIVE;
+	public boolean isActive() {
+		return state == ACTIVE;
 	}
 	
 	@Override
@@ -137,7 +138,5 @@ public class RegisterMail {
 				.append(user)
 				.toString();
 	}
-	
-	
 	
 }

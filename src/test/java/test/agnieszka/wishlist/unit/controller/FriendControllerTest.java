@@ -9,16 +9,18 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.ui.ModelMap;
 
 import agnieszka.wishlist.controller.FriendsController;
 import agnieszka.wishlist.controller.helper.CurrentUserHelper;
 import agnieszka.wishlist.model.User;
 
+@RunWith(MockitoJUnitRunner.class)
 public class FriendControllerTest {
 
 	@Mock
@@ -38,7 +40,6 @@ public class FriendControllerTest {
 	
 	@Before
 	public void setup() {
-		MockitoAnnotations.initMocks(this);
 		friends = getFriends();
 		user = getUser();
 	}
@@ -50,7 +51,7 @@ public class FriendControllerTest {
 		when(currentUserHelper.getCurrentUser(principal)).thenReturn(user);
 		
 		//when
-		String viewName = controller.friendsList(model, principal);
+		String viewName = controller.showFriends(model, principal);
 		
 		//then
 		assertEquals("friends", viewName);

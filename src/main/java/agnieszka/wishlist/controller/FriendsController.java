@@ -13,13 +13,16 @@ import agnieszka.wishlist.model.User;
 @Controller
 public class FriendsController {
 
+	private static final String FRIENDS_VIEW = "friends";
 	@Autowired
 	private CurrentUserHelper currentUserHelper;
 	
 	@RequestMapping(value = {"/myFriends"})
-	public String friendsList(ModelMap model, Principal principal) {
+	public String showFriends(ModelMap model, Principal principal) {
 		User currentUser = currentUserHelper.getCurrentUser(principal);
+		
 		model.addAttribute("friends", currentUser.getFriends()); 
-		return "friends"; 
+		
+		return FRIENDS_VIEW; 
 	}
 }

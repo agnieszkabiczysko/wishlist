@@ -23,11 +23,11 @@
 					<spring:message code="findWishlist.legend" />
 				</legend>
 				<div class="form-group">
-					<label class="control-label col-lg-2" for="searchFor"> <spring:message
+					<label class="control-label col-lg-2" for="term"> <spring:message
 							code="findWishlist.searchWishlist.searchFor.label" />
 					</label>
 					<div class="col-lg-10">
-						<input id="searchFor" name="searchFor" type="text"
+						<input id="term" name="term" type="text"
 							class="form-control" />
 					</div>
 				</div>
@@ -39,14 +39,14 @@
 				<br>
 				<div class="form-check" style="text-indent: 2.5cm">
 					<label class="form-check-label"> <input type="radio"
-						class="form-check-input" name="searchType" id="optionUser"
+						class="form-check-input" name="termTypeString" id="optionUser"
 						value="USERID" checked> <spring:message
 							code="findWishlist.searchWishlist.formCheck.searchType.user" />
 					</label>
 				</div>
 				<div class="form-check" style="text-indent: 2.5cm">
 					<label class="form-check-label"> <input type="radio"
-						class="form-check-input" name="searchType" id="optionEmail"
+						class="form-check-input" name="termTypeString" id="optionEmail"
 						value="EMAIL"> <spring:message
 							code="findWishlist.searchWishlist.formCheck.searchType.email" />
 					</label>

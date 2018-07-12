@@ -30,7 +30,7 @@ public class UserPreferencesServiceImpl implements UserPreferencesService {
 	public void updateCurrentWishlist(User user, Wishlist wishlist) {
 		UserPreferences userPreferences = findUserPreferencesForUser(user);
 		if (userPreferences == null) {
-			userPreferences= new UserPreferences(user, wishlist);
+			userPreferences = new UserPreferences(user, wishlist);
 		} else {
 			userPreferences.setCurrentWishlist(wishlist);
 		}
